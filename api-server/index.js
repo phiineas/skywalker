@@ -26,13 +26,17 @@ const config = {
     SUBNET_3: process.env.SUBNET_3,
     SECURITY_GROUPS: process.env.SECURITY_GROUPS,
     IMAGE_NAME: process.env.IMAGE_NAME
-}
+};
 
-console.log(`loaded PORT=${PORT}`);
+console.log(`loaded PORT - ${PORT}`);
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'healthy', service: 'api-server', timestamp: new Date().toISOString() });
+});
 
 app.post('/api/upload', async (req, res) => {
-    const { gitUrl } = req.body;
-    const slug = generateSlug();
+    const { gitUrl, existingSlug } = req.body;
+    const slug = existingSlug ? existingSlug : generateSlug();
 
     const command = new RunTaskCommand({
         cluster: config.ECS_CLUSTER_ARN,
