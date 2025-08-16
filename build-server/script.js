@@ -17,10 +17,28 @@ const s3Client = new S3Client({
 
 const PROJECT_ID = process.env.PROJECT_ID;
 
-const publisher = new Redis(process.env.SERVICE_URI);
+let publisher;
+try {
+    if (process.env.SERVICE_URI) {
+        publisher = new Redis(process.env.SERVICE_URI);
+        publisher.on('error', (err) => {
+            console.warn('Redis connection error:', err.message);
+        });
+    }
+} catch (error) {
+    console.warn('Failed to initialize Redis connection:', error.message);
+}
 
 function publishLog(message) {
-    publisher.publish(`logs-${PROJECT_ID}`, JSON.stringify({ message }));
+    if (publisher) {
+        try {
+            publisher.publish(`logs-${PROJECT_ID}`, JSON.stringify({ message }));
+        } catch (error) {
+            console.warn('Failed to publish log to Redis:', error.message);
+        }
+    }
+    // Always log to console as fallback
+    console.log(`[LOG] ${message}`);
 }
 
 async function init() {

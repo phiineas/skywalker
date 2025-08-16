@@ -91,6 +91,10 @@ app.post('/api/upload', async (req, res) => {
                         {
                             name: 'AWS_REGION',
                             value: process.env.AWS_DEFAULT_REGION
+                        },
+                        {
+                            name: 'SERVICE_URI',
+                            value: process.env.SERVICE_URI
                         }
                     ]
                 }

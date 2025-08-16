@@ -8,7 +8,19 @@ require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 const PORT = process.env.SOCKET_PORT || 9001;
 
 // create Redis subscriber
-const subscriber = new Redis(process.env.SERVICE_URI);
+let subscriber;
+try {
+    if (process.env.SERVICE_URI) {
+        subscriber = new Redis(process.env.SERVICE_URI);
+        subscriber.on('error', (err) => {
+            console.warn('Redis connection error:', err.message);
+        });
+    } else {
+        console.warn('SERVICE_URI not configured, Redis functionality will be disabled');
+    }
+} catch (error) {
+    console.warn('Failed to initialize Redis connection:', error.message);
+}
 
 // create HTTP server
 const httpServer = createServer((req, res) => {
@@ -63,6 +75,11 @@ io.on('connection', (socket) => {
 
 // handle Redis pub/sub for logs
 async function setupRedisSubscription() {
+    if (!subscriber) {
+        console.log('Redis subscriber not available, skipping subscription setup');
+        return;
+    }
+    
     console.log('setting up Redis subscription for logs ...');
     
     try {

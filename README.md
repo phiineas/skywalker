@@ -127,3 +127,34 @@ npm run start:interface
 - **Cache/Queue**: Redis
 - **Containerization**: Docker
 - **Proxy**: HTTP Proxy middleware
+
+## Troubleshooting
+
+### Redis Connection Issues
+
+If you encounter `MaxRetriesPerRequestError` or `ECONNREFUSED` errors when trying to connect to Redis:
+
+1. **Verify SERVICE_URI Configuration**: 
+   - Ensure `SERVICE_URI` is properly set in all `.env.local` files
+   - Check that the Redis endpoint is accessible from your environment
+
+2. **Environment Variable Propagation**:
+   - The API server now automatically passes `SERVICE_URI` to ECS build tasks
+   - Build containers have built-in error handling for Redis connection failures
+
+3. **Graceful Degradation**:
+   - The build server will continue to work even if Redis is unavailable
+   - Logs will still be written to console output
+   - Socket server will skip Redis subscription if connection fails
+
+4. **Check Environment**:
+   ```bash
+   node scripts/check-env.js
+   ```
+
+### Common Issues
+
+- **Missing Dependencies**: Run `npm run install:all` to install all service dependencies
+- **Port Conflicts**: Check if ports 3000, 8000, 9000, 9001 are available
+- **AWS Permissions**: Verify AWS credentials have ECS and S3 permissions
+- **Container Build Failures**: Check AWS ECS task logs in CloudWatch
