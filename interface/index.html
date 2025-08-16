@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>skywalker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .status-item {
+            background: white;
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .status-item h3 {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .status-healthy { color: #28a745; }
+        .status-unhealthy { color: #dc3545; }
+        .status-loading { color: #ffc107; }
+        
+        .logs {
+            background: #212529;
+            color: #fff;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .deployment-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .deployment-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .deployment-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .url-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>skywalker</h1>
+            <p>automated deployment platform</p>
+        </div>
+        
+        <div class="status-grid">
+            <div class="status-item">
+                <h3>api server</h3>
+                <div class="status-value status-loading" id="api-status">checking...</div>
+            </div>
+            <div class="status-item">
+                <h3>socket server</h3>
+                <div class="status-value status-loading" id="socket-status">checking...</div>
+            </div>
+            <div class="status-item">
+                <h3>reverse proxy</h3>
+                <div class="status-value status-loading" id="proxy-status">checking...</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-weight: 400;">deploy application</h2>
+            <form id="deploy-form">
+                <div class="form-group">
+                    <label for="git-url">repository url</label>
+                    <input type="url" id="git-url" placeholder="https://github.com/username/repo" required>
+                </div>
+                <div class="form-group">
+                    <label for="custom-slug">custom slug (optional)</label>
+                    <input type="text" id="custom-slug" placeholder="my-app">
+                </div>
+                <button type="submit" class="btn" id="deploy-btn">deploy</button>
+            </form>
+            
+            <div id="deployment-result" class="deployment-result">
+                <div id="result-content"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-weight: 400;">deployment logs</h2>
+            <div id="logs" class="logs">waiting for deployment...</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // status checking
+        async function checkStatus() {
+            const services = [
+                { id: 'api-status', url: 'http://localhost:9000/api/health' },
+                { id: 'socket-status', url: 'http://localhost:9001/socket.io/' },
+                { id: 'proxy-status', url: 'http://localhost:8000/' }
+            ];
+            
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    const element = document.getElementById(service.id);
+                    if (response.ok) {
+                        element.textContent = 'healthy';
+                        element.className = 'status-value status-healthy';
+                    } else {
+                        element.textContent = 'unhealthy';
+                        element.className = 'status-value status-unhealthy';
+                    }
+                } catch {
+                    const element = document.getElementById(service.id);
+                    element.textContent = 'offline';
+                    element.className = 'status-value status-unhealthy';
+                }
+            }
+        }
+        
+        // socket connection
+        const socket = io('http://localhost:9001');
+        const logsElement = document.getElementById('logs');
+        
+        socket.on('connect', () => {
+            console.log('connected to socket server');
+        });
+        
+        socket.on('log', (data) => {
+            logsElement.textContent += data.message + '\n';
+            logsElement.scrollTop = logsElement.scrollHeight;
+        });
+        
+        // deployment form
+        document.getElementById('deploy-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const gitUrl = document.getElementById('git-url').value;
+            const customSlug = document.getElementById('custom-slug').value;
+            const deployBtn = document.getElementById('deploy-btn');
+            const resultDiv = document.getElementById('deployment-result');
+            const resultContent = document.getElementById('result-content');
+            
+            // reset state
+            deployBtn.disabled = true;
+            deployBtn.innerHTML = '<span class="loading"></span>deploying...';
+            resultDiv.style.display = 'none';
+            logsElement.textContent = 'starting deployment...\n';
+            
+            try {
+                const response = await fetch('http://localhost:9000/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gitUrl,
+                        existingSlug: customSlug || undefined
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // subscribe to logs for this deployment
+                    socket.emit('subscribe', `logs-${result.data.slug}`);
+                    
+                    resultContent.innerHTML = `
+                        <strong>deployment queued successfully</strong><br>
+                        slug: ${result.data.slug}<br>
+                        url: <a href="${result.data.url}" target="_blank" class="url-link">${result.data.url}</a>
+                    `;
+                    resultDiv.className = 'deployment-result deployment-success';
+                } else {
+                    resultContent.innerHTML = `<strong>deployment failed</strong><br>${result.message || 'unknown error'}`;
+                    resultDiv.className = 'deployment-result deployment-error';
+                }
+                
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                resultContent.innerHTML = `<strong>deployment failed</strong><br>${error.message}`;
+                resultDiv.className = 'deployment-result deployment-error';
+                resultDiv.style.display = 'block';
+            }
+            
+            deployBtn.disabled = false;
+            deployBtn.textContent = 'deploy';
+        });
+        
+        // initialize
+        checkStatus();
+        setInterval(checkStatus, 30000); // check every 30 seconds
+    </script>
+</body>
+</html>

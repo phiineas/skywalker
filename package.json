@@ -1,0 +1,31 @@
+{
+  "name": "skywalker",
+  "version": "1.0.0",
+  "description": "automated deployment platform",
+  "main": "scripts/start.js",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "start:api": "cd api-server && npm start",
+    "start:socket": "cd socket-server && npm start", 
+    "start:proxy": "cd reverse-proxy && npm start",
+    "start:interface": "cd interface && npm start",
+    "install:all": "npm run install:api && npm run install:socket && npm run install:proxy && npm run install:interface",
+    "install:api": "cd api-server && npm install",
+    "install:socket": "cd socket-server && npm install",
+    "install:proxy": "cd reverse-proxy && npm install",
+    "install:interface": "cd interface && npm install",
+    "health": "node scripts/health-check.js",
+    "status": "node scripts/status.js",
+    "deploy": "node scripts/deploy.js",
+    "check-env": "node scripts/check-env.js"
+  },
+  "keywords": ["deployment", "automation", "docker", "aws"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
