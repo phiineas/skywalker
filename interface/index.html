@@ -238,7 +238,7 @@
         async function checkStatus() {
             const services = [
                 { id: 'api-status', url: 'http://localhost:9000/api/health' },
-                { id: 'socket-status', url: 'http://localhost:9001/socket.io/' },
+                { id: 'socket-status', url: 'http://localhost:9001/health' },
                 { id: 'proxy-status', url: 'http://localhost:8000/' }
             ];
             
@@ -262,11 +262,25 @@
         }
         
         // socket connection
-        const socket = io('http://localhost:9001');
+        const socket = io('http://localhost:9001', {
+            transports: ['websocket', 'polling'],
+            upgrade: true,
+            rememberUpgrade: true,
+            timeout: 5000,
+            forceNew: true
+        });
         const logsElement = document.getElementById('logs');
         
         socket.on('connect', () => {
             console.log('connected to socket server');
+        });
+        
+        socket.on('connect_error', (error) => {
+            console.error('socket connection error:', error);
+        });
+        
+        socket.on('disconnect', (reason) => {
+            console.log('disconnected from socket server:', reason);
         });
         
         socket.on('log', (data) => {

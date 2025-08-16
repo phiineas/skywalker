@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const { createServer } = require('http');
 const Redis = require('ioredis');
 const path = require('path');
 
@@ -9,12 +10,40 @@ const PORT = process.env.SOCKET_PORT || 9001;
 // create Redis subscriber
 const subscriber = new Redis(process.env.SERVICE_URI);
 
+// create HTTP server
+const httpServer = createServer((req, res) => {
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+    
+    if (req.url === '/health' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+            status: 'healthy', 
+            service: 'socket-server', 
+            timestamp: new Date().toISOString() 
+        }));
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+    }
+});
+
 // create Socket.IO server
-const io = new Server({
+const io = new Server(httpServer, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    transports: ['websocket', 'polling'],
+    allowEIO3: true
 });
 
 // handle socket connections
@@ -55,7 +84,7 @@ async function setupRedisSubscription() {
 }
 
 console.log('starting Socket.IO server ...');
-io.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`socket.io server running on port - ${PORT}`);
     setupRedisSubscription();
 });
@@ -70,7 +99,7 @@ io.engine.on('connection_error', (err) => {
 
 process.on('SIGINT', () => {
     console.log('shutting down Socket.IO server ...');
-    io.close(() => {
+    httpServer.close(() => {
         console.log('socket.io server closed');
         subscriber.disconnect();
         process.exit(0);
