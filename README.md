@@ -78,16 +78,6 @@ Skywalker is a microservices-based deployment platform that automates the build 
 6. Real-time status updates sent via Socket server
 7. Application becomes accessible via subdomain routing
 
-### Service Communication
-
-```
-Client Request → Reverse Proxy → API Server → AWS ECS
-                      ↓              ↓
-               Web Interface → Socket Server → Redis
-                              ↓
-                         Real-time Updates
-```
-
 ### Configuration
 
 Each service requires environment-specific configuration:
