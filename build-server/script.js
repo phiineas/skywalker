@@ -33,6 +33,23 @@ async function init() {
     p.on('close', async function () {
         console.log(`child process exited with code`);
         const distDirPath = path.join(__dirname, 'output', 'dist');
+        
+        // fix HTML file paths before uploading
+        const indexHtmlPath = path.join(distDirPath, 'index.html');
+        if (fs.existsSync(indexHtmlPath)) {
+            console.log('fixing asset paths in index.html');
+            let htmlContent = fs.readFileSync(indexHtmlPath, 'utf-8');
+            
+            // replace relative asset paths with absolute S3 URLs
+            const s3BaseUrl = `https://uploadserviceforskywalker.s3.ap-south-1.amazonaws.com/__outputs/${PROJECT_ID}`;
+            htmlContent = htmlContent.replace(/src="\/assets\//g, `src="${s3BaseUrl}/assets/`);
+            htmlContent = htmlContent.replace(/href="\/assets\//g, `href="${s3BaseUrl}/assets/`);
+            htmlContent = htmlContent.replace(/href="\/vite\.svg"/g, `href="${s3BaseUrl}/vite.svg"`);
+            
+            fs.writeFileSync(indexHtmlPath, htmlContent);
+            console.log('updated asset paths in index.html');
+        }
+
         const distDirContents = fs.readdirSync(distDirPath, { recursive: true });
 
         for (const file of distDirContents) {

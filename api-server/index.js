@@ -2,8 +2,6 @@ const express = require('express');
 const path = require('path');
 const { generateSlug } = require('random-word-slugs');
 const { ECSClient, RunTaskCommand } = require('@aws-sdk/client-ecs');
-const { env } = require('process');
-const { url } = require('inspector');
 
 require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 
@@ -91,7 +89,7 @@ app.post('/api/upload', async (req, res) => {
         status: 'queued',
         data: {
             slug,
-            url: `https://${slug}.localhost:8000`
+            url: `http://${slug}.localhost:8000`
         }
     })
 });
