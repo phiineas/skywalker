@@ -22,11 +22,11 @@ try {
     if (process.env.SERVICE_URI) {
         publisher = new Redis(process.env.SERVICE_URI);
         publisher.on('error', (err) => {
-            console.warn('Redis connection error:', err.message);
+            console.warn('redis connection error-', err.message);
         });
     }
 } catch (error) {
-    console.warn('Failed to initialize Redis connection:', error.message);
+    console.warn('failed to initialize Redis connection-', error.message);
 }
 
 function publishLog(message) {
@@ -34,7 +34,7 @@ function publishLog(message) {
         try {
             publisher.publish(`logs-${PROJECT_ID}`, JSON.stringify({ message }));
         } catch (error) {
-            console.warn('Failed to publish log to Redis:', error.message);
+            console.warn('failed to publish log to Redis-', error.message);
         }
     }
     // Always log to console as fallback
